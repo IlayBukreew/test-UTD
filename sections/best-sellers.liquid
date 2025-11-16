@@ -1,0 +1,413 @@
+{% comment %}
+  Best Sellers Section
+  This section displays a selection of best-selling products from specified collections.
+  It includes customizable items for better presentation.
+  No builders, no files separation - all in one file for simplicity.
+{% endcomment %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+  rel="stylesheet"
+>
+
+<style>
+  .best-sellers-section {
+    padding: 64px 16px;
+    margin: 0 auto;
+    max-width: 1600px;
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    flex-direction: column;
+    font-family: 'Inter', sans-serif;
+  }
+  .buttons-group {
+    display: flex;
+    flex-direction: column;
+
+    button {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      padding: 24px 0 24px 24px;
+      border-bottom: 1px solid #dcdcdc;
+      transition: opacity 0.5s ease;
+      opacity: 1;
+
+      &:not(.active) {
+        opacity: 0.6;
+      }
+
+      h3 {
+        font-family: Inter;
+        font-weight: 500;
+        font-size: 28px;
+        line-height: 34px;
+        margin: 0;
+      }
+    }
+  }
+  .section-subtitle {
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    margin-bottom: 0;
+  }
+  .section-title {
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 38px;
+    line-height: 46px;
+    margin-top: 16px;
+  }
+  .section-header {
+    margin-bottom: 64px;
+  }
+  .collections-triggers {
+    flex: 50%;
+  }
+  .collection-info {
+    flex: 50%;
+
+    img {
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 16px;
+    }
+
+    .collection-item {
+      position: relative;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      display: none;
+
+      &.active {
+        display: block;
+      }
+    }
+  }
+  .product-info {
+    position: absolute;
+    flex-direction: column;
+    right: 50%;
+    transform: translateX(50%);
+    bottom: 14px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    background: #fff;
+    width: calc(100% - 32px);
+    padding: 8px 16px;
+    border-radius: 16px;
+    outline: 1px solid #dddcdc;
+  }
+
+  .product-title {
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    margin-bottom: 0;
+  }
+  .product-price {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
+  }
+  .original-price {
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .compare-price {
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 22px;
+    color: #9d9d9d;
+    text-decoration: line-through;
+  }
+  .sale-price {
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    color: #e41616;
+  }
+  .product-tag {
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 18px;
+    text-align: center;
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    width: fit-content;
+  }
+  .product-tags {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-transform: capitalize;
+  }
+  .sale-tag {
+    border-color: #e41616;
+    color: #fff;
+    background: #e41616;
+  }
+  .product-buttons {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    button {
+      font-family: Inter;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 18px;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid #dcdcdc;
+      border-radius: 8px;
+      cursor: pointer;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  @media (min-width: 768px) {
+    .best-sellers-section {
+      padding: 64px 32px;
+      flex-direction: row;
+      gap: 64px;
+    }
+    .best-sellers-section {
+      flex-direction: row;
+    }
+    .product-info {
+      padding: 24px 32px;
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+</style>
+
+<section class="best-sellers-section" data-section="{{ section.id }}">
+  <div class="collections-triggers">
+    <div class="section-header">
+      <p class="section-subtitle">{{ section.settings.section_subtitle }}</p>
+      <h2 class="section-title">{{ section.settings.section_title }}</h2>
+    </div>
+    <div class="buttons-group">
+      {% for block in section.blocks %}
+        {% assign collection = block.settings.collection %}
+        {% if collection %}
+          <button data-collection-trigger>
+            {% if block.settings.custom_title != blank %}
+              <h3 class="collection-title">{{ block.settings.custom_title }}</h3>
+            {% else %}
+              <h3 class="collection-title">{{ collection.title }}</h3>
+            {% endif %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M14.4297 5.93005L20.4997 12.0001L14.4297 18.0701" stroke="black" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3.5 12H20.33" stroke="black" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  <div class="collection-info">
+    {% for block in section.blocks %}
+      {% assign collection = block.settings.collection %}
+      {% if collection %}
+        {% assign first_product = collection.products.first %}
+        {% if block.settings.featured_product != blank %}
+          {% assign first_product = block.settings.featured_product %}
+        {% endif %}
+        <div data-collection class="collection-item">
+          <div class="product-tags">
+            {% assign labels = '' %}
+            {% for tag in first_product.tags %}
+              {% if tag contains 'tag_' %}
+                {% assign label = tag | remove: 'tag_' %}
+                {% assign labels = labels | append: label | append: ',' %}
+              {% endif %}
+            {% endfor %}
+            {% assign labels = labels | split: ',' %}
+            {% for label in labels limit: 3 %}
+              <span
+                class="product-tag {% if label == 'sale' %}sale-tag{% endif %}"
+              >
+                {{ label }}
+              </span>
+            {% endfor %}
+          </div>
+          <div class="product-buttons">
+            <button class="add-to-wishlist">
+              <svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" viewBox="0 0 23 20" fill="none">
+                <path d="M20.0413 2.36183C19.5305 1.85083 18.9241 1.44547 18.2566 1.16891C17.5892 0.892347 16.8738 0.75 16.1513 0.75C15.4288 0.75 14.7134 0.892347 14.0459 1.16891C13.3785 1.44547 12.772 1.85083 12.2613 2.36183L11.2013 3.42183L10.1413 2.36183C9.1096 1.33013 7.71032 0.750535 6.25129 0.750535C4.79226 0.750535 3.39298 1.33013 2.36129 2.36183C1.3296 3.39352 0.75 4.79279 0.75 6.25183C0.75 7.71086 1.3296 9.11013 2.36129 10.1418L3.42129 11.2018L11.2013 18.9818L18.9813 11.2018L20.0413 10.1418C20.5523 9.63107 20.9576 9.02464 21.2342 8.35718C21.5108 7.68972 21.6531 6.97431 21.6531 6.25183C21.6531 5.52934 21.5108 4.81393 21.2342 4.14647C20.9576 3.47901 20.5523 2.87258 20.0413 2.36183V2.36183Z" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button
+              {% unless first_product.available %}
+                disabled
+              {% endunless %}
+              data-variant="{{ first_product.variants.first.id }}"
+              class="add-to-cart"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M15.5819 12C15.5819 13.98 13.9819 15.58 12.0019 15.58C10.0219 15.58 8.42188 13.98 8.42188 12C8.42188 10.02 10.0219 8.42004 12.0019 8.42004C13.9819 8.42004 15.5819 10.02 15.5819 12Z" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <a href="{{ first_product.url }}">
+            {% if first_product.featured_image %}
+              {% render 'image', image: first_product.featured_image %}
+            {% else %}
+              {{ 'product-3' | placeholder_svg_tag }}
+            {% endif %}
+            <div class="product-info">
+              <h4 class="product-title">{{ first_product.title }}</h4>
+              <div class="product-price">
+                <span class="original-price {% if first_product.compare_at_price > first_product.price %}sale-price{% endif %}">
+                  {{- first_product.price | money -}}
+                </span>
+                <span class="compare-price">{{ first_product.compare_at_price | money }}</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const section = document.querySelector('[data-section="{{ section.id }}"]');
+    const buttons = section.querySelectorAll('.buttons-group [data-collection-trigger]');
+    const collectionItems = section.querySelectorAll('.collection-info [data-collection]');
+    const addToCartButtons = section.querySelectorAll('[data-variant]');
+
+    // Show the first collection by default
+    showCollection(0);
+
+    // Change collection display
+    function showCollection(index) {
+      collectionItems.forEach((item, i) => {
+        buttons[i].classList.toggle('active', i === index);
+        item.classList.toggle('active', i === index);
+        requestAnimationFrame(() => {
+          item.style.opacity = i === index ? '1' : '0';
+        });
+      });
+    }
+
+    buttons.forEach((button, index) => {
+      button.addEventListener('click', () => {
+        showCollection(index);
+      });
+    });
+
+    // Add to cart functionality
+    addToCartButtons.forEach((button) => {
+      button.addEventListener('click', async function (e) {
+        const variantId = this.getAttribute('data-variant');
+        try {
+          const response = await fetch('/cart/add.js', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: variantId, quantity: 1 }),
+          });
+          const data = await response.json();
+          // Ideally, show a notification or update cart UI here
+          window.location.reload();
+        } catch (error) {
+          console.error('Error adding to cart:', error);
+        }
+      });
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Best Sellers",
+  "settings": [
+    {
+      "type": "text",
+      "id": "section_subtitle",
+      "label": "Section Label",
+      "default": "Best Sellers",
+      "info": "The subtitle displayed below the section label.",
+      "placeholder": "Enter section label"
+    },
+    {
+      "type": "text",
+      "id": "section_title",
+      "label": "Section Title",
+      "default": "Trending Products",
+      "info": "The title displayed at the top of the section.",
+      "placeholder": "Enter section title"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collections",
+      "name": "Collection",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Select Collection",
+          "info": "Choose a collection to feature in this section."
+        },
+        {
+          "type": "text",
+          "id": "custom_title",
+          "label": "Custom Title",
+          "info": "Enter a custom title for the collection.",
+          "placeholder": "Enter custom title"
+        },
+        {
+          "type": "product",
+          "id": "featured_product",
+          "label": "Featured Product",
+          "info": "Select a product to feature in this collection."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Best Sellers",
+      "category": "t:categories.product"
+    }
+  ]
+}
+{% endschema %}
