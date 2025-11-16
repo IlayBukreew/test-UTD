@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "dev": "shopify theme dev -s utd-testostore.myshopify.com",
+    "push": "shopify theme push"
+  }
+}
